@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <set>
 #include <format>
+#include <unordered_set>
 
 using production = std::pair<std::string, std::string>;
 
@@ -30,6 +31,8 @@ private:
 
 	bool wordStillHasNonterminals(const std::string&) const;
 
+	void eliminateLambdaProductions();
+
 public:
 
 	Grammar() = default;
@@ -41,5 +44,6 @@ public:
 	bool IsContextIndependent() const;
 	std::string GenerateWord(bool = true) const;
 	bool VerifyGrammar(std::ostream&) const;
-	void PrintGrammar() const;
+	void PrintGrammar() const;	
+	void simplifyGrammar();
 };

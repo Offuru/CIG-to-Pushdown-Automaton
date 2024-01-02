@@ -97,6 +97,97 @@ bool Grammar::wordStillHasNonterminals(const std::string& word) const
 	return false;
 }
 
+void Grammar::eliminateLambdaProductions()
+{
+	std::unordered_set<char> Vn;
+
+	for (auto production : m_productions)
+	{
+		if (production.second == lambda && production.first.size() == 1)
+			Vn.insert(production.first[0]);
+	}
+
+	//B->A1A2..An
+	bool modifiedVn = true;
+
+	while (!modifiedVn)
+	{
+		modifiedVn = false;
+
+		for (auto production : m_productions)
+		{
+			if (production.first.size() == 1 &&
+				Vn.find(production.first[0]) == Vn.end())
+			{
+				//check if A1A2.. in Vn
+				bool allRightInVn = true;
+				for (auto elem : production.second)
+				{
+					if (Vn.find(elem) == Vn.end())
+					{
+						allRightInVn = false;
+						break;
+					}
+				}
+
+				if (allRightInVn)
+				{
+					Vn.insert(production.first[0]);
+					modifiedVn = true;
+				}
+			}
+		}
+	}
+
+	std::vector<production> P1;
+
+	for (auto production : m_productions)
+	{
+		if (production.second != lambda)
+		{
+			P1.push_back({ production.first, production.second });
+			std::string rightMember = production.second;
+			for (int i = 0; i < rightMember.size(); ++i)
+			{
+				if (Vn.find(rightMember[i]) != Vn.end())
+				{
+					std::string copy = rightMember;
+					copy.erase(i, 1);
+
+					if (copy.size() != 0)
+						P1.push_back({ production.first, copy });
+				}
+			}
+		}
+	}
+
+	if (Vn.find(m_startSymbol) != Vn.end())
+	{
+		std::string aux;
+		aux += m_startSymbol;
+		P1.push_back({ "@", aux });
+		P1.push_back({ "@", lambda });
+
+		m_startSymbol = '@';
+	}
+
+	m_productions = P1;
+}
+
+void Grammar::simplifyGrammar()
+{
+	/*if (!IsContextIndependent())
+	{
+		std::cout << "Can't simplify grammar! It isn't context independent.\n";
+		return;
+	}*/
+
+	//eliminate lambda-productions ????
+
+	eliminateLambdaProductions();
+
+}
+
 void Grammar::ReadGrammar(std::istream& in)
 {
 	uint32_t n;
@@ -137,13 +228,13 @@ bool Grammar::IsContextIndependent() const
 	// S -> lambda
 	for (auto production : m_productions)
 	{
-		if(production.second == lambda)
+		if (production.second == lambda)
 		{
 			if (production.first.size() != 1)
 				return false;
 			if (production.first[0] != m_startSymbol)
 				return false;
-			
+
 			for (auto production2 : m_productions)
 				if (std::regex_search(production2.second, std::regex(std::string{ m_startSymbol })))
 					return false;
