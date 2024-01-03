@@ -10,6 +10,7 @@
 #include <set>
 #include <format>
 #include <unordered_set>
+#include <unordered_map>
 
 using production = std::pair<std::string, std::string>;
 
@@ -32,6 +33,8 @@ private:
 	bool wordStillHasNonterminals(const std::string&) const;
 
 	void eliminateLambdaProductions();
+
+	void eliminateRenames();
 
 	bool validCombination(int k, std::vector<int>& currentCombination);
 

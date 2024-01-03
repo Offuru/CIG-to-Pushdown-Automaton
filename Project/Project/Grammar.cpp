@@ -68,18 +68,20 @@ bool Grammar::verifyRule5() const
 
 		for (const auto& symbol : m_nonterminals)
 		{
-			leftMember.erase(std::remove_if(leftMember.begin(), leftMember.end(), [&symbol](const char& a) {
+			leftMember.erase(std::remove(leftMember.begin(), leftMember.end(), symbol), leftMember.end());
+			rightMember.erase(std::remove(rightMember.begin(), rightMember.end(), symbol), rightMember.end());
+
+
+			/*leftMember.erase(std::remove_if(leftMember.begin(), leftMember.end(), [&symbol](const char& a) {
 				return a == symbol; }));
 			rightMember.erase(std::remove_if(rightMember.begin(), rightMember.end(), [&symbol](const char& a) {
-				return a == symbol; }));
+				return a == symbol; }));*/
 		}
 
 		for (const auto& symbol : m_terminals)
 		{
-			leftMember.erase(std::remove_if(leftMember.begin(), leftMember.end(), [&symbol](const char& a) {
-				return a == symbol; }));
-			rightMember.erase(std::remove_if(rightMember.begin(), rightMember.end(), [&symbol](const char& a) {
-				return a == symbol; }));
+			leftMember.erase(std::remove(leftMember.begin(), leftMember.end(), symbol), leftMember.end());
+			rightMember.erase(std::remove(rightMember.begin(), rightMember.end(), symbol), rightMember.end());
 		}
 
 		if (rightMember.size() != 0 || leftMember.size() != 0)
@@ -143,8 +145,8 @@ void Grammar::eliminateLambdaProductions()
 	std::vector<production> P1;
 	std::vector<char> lettersInVn(Vn.begin(), Vn.end());
 	std::vector<int> currentCombination; //which nonterminals are lambda
-	
-	for(auto production : m_productions)
+
+	for (auto production : m_productions)
 		if (production.second != lambda)
 		{
 			P1.push_back({ production.first, production.second });
@@ -153,13 +155,13 @@ void Grammar::eliminateLambdaProductions()
 	for (int c = 1; c <= Vn.size(); ++c)
 	{
 		//Select all possible combinations of nonterminals from Vn
-		
+
 		currentCombination.resize(c + 1, 0);
 
 		currentCombination[1] = 0;
 
 		int k = 1;
-		while(k > 0)
+		while (k > 0)
 		{
 			while (currentCombination[k] < Vn.size())
 			{
@@ -170,7 +172,7 @@ void Grammar::eliminateLambdaProductions()
 					{
 						/*for (int i = 1; i <= c; ++i)
 							std::cout << currentCombination[i] << " ";*/
-						//se intampla magie aici
+							//se intampla magie aici
 
 						for (auto production : m_productions)
 						{
@@ -178,7 +180,7 @@ void Grammar::eliminateLambdaProductions()
 							{
 								std::string rightMember = production.second;
 								bool changedSomething = false;
-								
+
 								for (int j = 0; j < rightMember.size(); ++j)
 								{
 									for (int i = 1; i < currentCombination.size(); ++i)
@@ -204,7 +206,7 @@ void Grammar::eliminateLambdaProductions()
 											break;
 										}
 									}
-									if(!alreadyIn)
+									if (!alreadyIn)
 										P1.push_back({ production.first, rightMember });
 								}
 							}
@@ -235,6 +237,73 @@ void Grammar::eliminateLambdaProductions()
 	m_productions = P1;
 }
 
+void Grammar::eliminateRenames()
+{
+	std::unordered_multimap<char, std::string> newProductions;
+	std::unordered_multimap<char, char> derivations;
+
+	for (auto production : m_productions)
+	{
+		if (production.second.size() != 1 || !wordStillHasNonterminals(production.second)) // no renaming
+		{
+			newProductions.insert({ production.first[0], production.second });
+		}
+		else if (production.second.size() == 1 && wordStillHasNonterminals(production.second))
+		{
+			derivations.insert({ production.first[0], production.second[0] });
+		}
+	}
+
+	for (auto derivation : derivations)
+	{
+		auto range = newProductions.equal_range(derivation.second);
+
+		for (auto prod = range.first; prod != range.second; ++prod)
+		{
+			newProductions.insert({ derivation.first, prod->second });
+		}
+	}
+
+	for (auto derivation : derivations)
+	{
+		auto range = derivations.equal_range(derivation.second);
+
+		for (auto prod = range.first; prod != range.second; ++prod)
+		{
+			auto range2 = newProductions.equal_range(prod->second);
+
+			for (auto prod2 = range2.first; prod2 != range2.second; ++prod2)
+			{
+				//verify if newProd doesn't already exist
+				bool exists = false;
+				auto range3 = newProductions.equal_range(derivation.first);
+				for (auto prod3 = range3.first; prod3 != range3.second; ++prod3)
+				{
+					if (prod3->first == derivation.first && prod3->second == prod2->second)
+					{
+						exists = true;
+						break;
+					}
+				}
+
+				if (!exists)
+					newProductions.insert({ derivation.first, prod2->second });
+			}
+		}
+	}
+
+	m_productions.clear();
+
+	for (auto production : newProductions)
+	{
+		std::string Ms;
+		Ms += production.first;
+		m_productions.push_back({ Ms, production.second });
+	}
+}
+
+
+
 bool Grammar::validCombination(int k, std::vector<int>& nonterminals)
 {
 	if (nonterminals[k] > nonterminals[k - 1])
@@ -253,7 +322,7 @@ void Grammar::simplifyGrammar()
 	//eliminate lambda-productions ????
 
 	eliminateLambdaProductions();
-
+	eliminateRenames();
 }
 
 void Grammar::ReadGrammar(std::istream& in)
