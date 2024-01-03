@@ -103,7 +103,8 @@ void Grammar::eliminateLambdaProductions()
 
 	for (auto production : m_productions)
 	{
-		if (production.second == lambda && production.first.size() == 1)
+		if (production.second == lambda && production.first.size() == 1
+			&& wordStillHasNonterminals(production.first))
 			Vn.insert(production.first[0]);
 	}
 
@@ -140,26 +141,86 @@ void Grammar::eliminateLambdaProductions()
 	}
 
 	std::vector<production> P1;
-
-	for (auto production : m_productions)
-	{
+	std::vector<char> lettersInVn(Vn.begin(), Vn.end());
+	std::vector<int> currentCombination; //which nonterminals are lambda
+	
+	for(auto production : m_productions)
 		if (production.second != lambda)
 		{
 			P1.push_back({ production.first, production.second });
-			std::string rightMember = production.second;
-			for (int i = 0; i < rightMember.size(); ++i)
-			{
-				if (Vn.find(rightMember[i]) != Vn.end())
-				{
-					std::string copy = rightMember;
-					copy.erase(i, 1);
+		}
 
-					if (copy.size() != 0)
-						P1.push_back({ production.first, copy });
+	for (int c = 1; c <= Vn.size(); ++c)
+	{
+		//Select all possible combinations of nonterminals from Vn
+		
+		currentCombination.resize(c + 1, 0);
+
+		currentCombination[1] = 0;
+
+		int k = 1;
+		while(k > 0)
+		{
+			while (currentCombination[k] < Vn.size())
+			{
+				++currentCombination[k];
+				if (validCombination(k, currentCombination))
+				{
+					if (k == c)
+					{
+						/*for (int i = 1; i <= c; ++i)
+							std::cout << currentCombination[i] << " ";*/
+						//se intampla magie aici
+
+						for (auto production : m_productions)
+						{
+							if (production.second != lambda)
+							{
+								std::string rightMember = production.second;
+								bool changedSomething = false;
+								
+								for (int j = 0; j < rightMember.size(); ++j)
+								{
+									for (int i = 1; i < currentCombination.size(); ++i)
+									{
+										if (lettersInVn[currentCombination[i] - 1] == rightMember[j])
+										{
+											rightMember.erase(j--, 1);
+											changedSomething = true;
+											break;
+										}
+									}
+								}
+								//std::cout << rightMember << '\n';
+								if (rightMember.size() != 0 && changedSomething)
+								{
+									//verify if this production is not already in P1
+									bool alreadyIn = false;
+									for (auto prod : P1)
+									{
+										if (prod.first == production.first && prod.second == rightMember)
+										{
+											alreadyIn = true;
+											break;
+										}
+									}
+									if(!alreadyIn)
+										P1.push_back({ production.first, rightMember });
+								}
+							}
+						}
+					}
+					else
+					{
+						++k;
+						currentCombination[k] = 0;
+					}
 				}
 			}
+			--k;
 		}
 	}
+
 
 	if (Vn.find(m_startSymbol) != Vn.end())
 	{
@@ -172,6 +233,13 @@ void Grammar::eliminateLambdaProductions()
 	}
 
 	m_productions = P1;
+}
+
+bool Grammar::validCombination(int k, std::vector<int>& nonterminals)
+{
+	if (nonterminals[k] > nonterminals[k - 1])
+		return true;
+	return false;
 }
 
 void Grammar::simplifyGrammar()

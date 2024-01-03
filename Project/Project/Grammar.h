@@ -33,6 +33,8 @@ private:
 
 	void eliminateLambdaProductions();
 
+	bool validCombination(int k, std::vector<int>& currentCombination);
+
 public:
 
 	Grammar() = default;
