@@ -33,10 +33,10 @@ private:
 	bool wordStillHasNonterminals(const std::string&) const;
 
 	void eliminateLambdaProductions();
-
 	void eliminateRenames();
-
 	void eliminateNonGeneratingSymbols();
+	void eliminateInaccessibleSymbols();
+
 
 	bool validCombination(int k, std::vector<int>& currentCombination);
 

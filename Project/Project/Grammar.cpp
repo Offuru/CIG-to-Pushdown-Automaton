@@ -318,9 +318,9 @@ void Grammar::eliminateNonGeneratingSymbols()
 		//A->alpha
 		for (auto production : m_productions)
 		{
-			//check if alpha contains only {Vi-1 U Vt}* (* without lambda)
-			if (production.second.size() == 1 && production.second[0] == lambda[0])
-				continue;
+			////check if alpha contains only {Vi-1 U Vt}*
+			//if (production.second.size() == 1 && production.second[0] == lambda[0])
+			//	continue;
 
 			//check if A isn't already added
 			if (generatingSymbols.find(production.first[0]) == generatingSymbols.end())
@@ -330,7 +330,8 @@ void Grammar::eliminateNonGeneratingSymbols()
 				for (auto var : production.second)
 				{
 					if (generatingSymbols.find(var) == generatingSymbols.end() &&
-						std::find(m_terminals.begin(), m_terminals.end(), var) == m_terminals.end())
+						std::find(m_terminals.begin(), m_terminals.end(), var) == m_terminals.end()
+						&& production.second != lambda)
 					{
 						checkIfContains = false;
 						break;
@@ -364,7 +365,8 @@ void Grammar::eliminateNonGeneratingSymbols()
 		for (auto elem : production->second)
 		{
 			if (generatingSymbols.find(elem) == generatingSymbols.end() &&
-				std::find(m_terminals.begin(), m_terminals.end(), elem) == m_terminals.end())
+				std::find(m_terminals.begin(), m_terminals.end(), elem) == m_terminals.end() &&
+				production->second != lambda)
 			{
 				containsNongenerating = true;
 				break;
@@ -375,6 +377,72 @@ void Grammar::eliminateNonGeneratingSymbols()
 			production = m_productions.erase(production);
 		else
 			++production;
+	}
+}
+
+void Grammar::eliminateInaccessibleSymbols()
+{
+	std::unordered_set<char> Vn1;
+	Vn1.insert(m_startSymbol);
+
+	//repeat until no symbol was added to Vn
+	bool changed = true;
+	while (changed)
+	{
+		changed = false;
+		for (auto production : m_productions)
+		{
+			if (Vn1.find(production.first[0]) != Vn1.end())
+			{
+				for (auto elem : production.second)
+				{
+					//if elem is nonterminal
+					if (std::find(m_nonterminals.begin(), m_nonterminals.end(), elem) != m_nonterminals.end())
+					{
+						//add if not already in Vn1
+						if (Vn1.find(elem) == Vn1.end())
+						{
+							Vn1.insert(elem);
+							changed = true;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	for (auto production = m_productions.begin(); production != m_productions.end();)
+	{
+		if (Vn1.find(production->first[0]) != Vn1.end())
+		{
+			if (production->second == lambda)
+			{
+				++production;
+				continue;
+			}
+			else
+			{
+				//check if alpha in {Vn1 U Vt}*
+				bool isInVn1UVt = true;
+				for (auto elem : production->second)
+				{
+					if (Vn1.find(elem) == Vn1.end() &&
+						std::find(m_terminals.begin(), m_terminals.end(), elem) == m_terminals.end())
+					{
+						isInVn1UVt = false;
+						break;
+					}
+				}
+
+				if (!isInVn1UVt)
+				{
+					production = m_productions.erase(production);
+				}
+				else
+					++production;
+			}
+		}
+		else production = m_productions.erase(production);
 	}
 }
 
@@ -399,6 +467,7 @@ void Grammar::simplifyGrammar()
 	eliminateLambdaProductions();
 	eliminateRenames();
 	eliminateNonGeneratingSymbols();
+	eliminateInaccessibleSymbols();
 }
 
 void Grammar::ReadGrammar(std::istream& in)
