@@ -1,5 +1,16 @@
 #include "Grammar.h"
 
+char Grammar::nextNonusedNonterminal()
+{
+	char next = 'A';
+	while (std::find(m_nonterminals.begin(), m_nonterminals.end(), next) != m_nonterminals.end())
+	{
+		++next;
+	}
+
+	return next;
+}
+
 bool Grammar::verifyRule1() const
 {
 	std::vector<char> terminalsCopy(m_terminals);
@@ -279,7 +290,7 @@ void Grammar::eliminateRenames()
 				//verify if newProd doesn't already exist
 				bool exists = false;
 				auto range3 = newProductions.equal_range(derivation.first);
-				
+
 				for (auto prod3 = range3.first; prod3 != range3.second; ++prod3)
 				{
 					if (prod3->first == derivation.first && prod3->second == prod2->second)
@@ -361,7 +372,7 @@ void Grammar::eliminateNonGeneratingSymbols()
 		}
 		//check if Md contains nongen symb
 		containsNongenerating = false;
-		
+
 		for (auto elem : production->second)
 		{
 			if (generatingSymbols.find(elem) == generatingSymbols.end() &&
@@ -372,7 +383,7 @@ void Grammar::eliminateNonGeneratingSymbols()
 				break;
 			}
 		}
-		
+
 		if (containsNongenerating)
 			production = m_productions.erase(production);
 		else
@@ -444,6 +455,89 @@ void Grammar::eliminateInaccessibleSymbols()
 		}
 		else production = m_productions.erase(production);
 	}
+}
+
+void Grammar::FNCconvert()
+{
+	if (!IsContextIndependent())
+	{
+		std::cout << "Can't simplify grammar! It isn't context independent.\n";
+		return;
+	}
+
+	eliminateRenames();
+
+	std::unordered_map<char, char> newProductions; //Step 2 - Ci -> Bi but the key is Bi to find if a terminal is alr replaced by a nonterminal (Bi <- Ci)
+
+	for (auto& production : m_productions)
+	{
+		if (production.second.size() >= 2)
+		{
+			for (auto elem : production.second)
+			{
+				if (std::find(m_terminals.begin(), m_terminals.end(), elem) != m_terminals.end())
+				{
+					if (newProductions.find(elem) == newProductions.end())
+					{
+						char nextNonterminal = nextNonusedNonterminal();
+						m_nonterminals.push_back(nextNonterminal);
+						newProductions.insert({ elem, nextNonterminal });
+					}
+
+					std::replace(production.second.begin(), production.second.end(), elem, newProductions[elem]);
+				}
+			}
+		}
+	}
+
+	for (auto prod : newProductions)
+	{
+		std::string second;
+		second += prod.second;
+		std::string first;
+		first += prod.first;
+		m_productions.push_back({ second, first });
+	}
+	newProductions.clear();
+
+	std::vector<production> step3Productions;
+
+	for (auto production = m_productions.begin(); production != m_productions.end();)
+	{
+		if (production->second.size() >= 3)
+		{
+			std::string newMd;
+			std::string lastNewNonterminal;
+			std::string currentNewNonterminal(1, nextNonusedNonterminal());
+			step3Productions.push_back({ production->first, production->second[0] + currentNewNonterminal });
+			
+			std::string tmpMd(production->second.begin() + 1, production->second.end());
+			lastNewNonterminal = currentNewNonterminal;
+
+			m_nonterminals.push_back(currentNewNonterminal[0]);
+
+			while (tmpMd.size() >= 3)
+			{
+				currentNewNonterminal = std::string(1, nextNonusedNonterminal());
+				step3Productions.push_back({ lastNewNonterminal, tmpMd[0] + currentNewNonterminal});
+				lastNewNonterminal = currentNewNonterminal;
+				m_nonterminals.push_back(currentNewNonterminal[0]);
+				tmpMd = std::string(tmpMd.begin() + 1, tmpMd.end());
+			}
+			step3Productions.push_back({ lastNewNonterminal, tmpMd });
+			m_nonterminals.push_back(currentNewNonterminal[0]);
+
+			production = m_productions.erase(production);
+		}
+		else 
+		{
+			++production;
+		}
+	}
+
+	m_productions.insert(m_productions.end(), step3Productions.begin(), step3Productions.end());
+
+	std::sort(m_productions.begin(), m_productions.end(), [](const production& a, const production& b) {return a.first < b.first; });
 }
 
 

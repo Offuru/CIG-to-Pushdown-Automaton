@@ -8,7 +8,7 @@ void printMenu()
     std::cout << "1 - Print the Grammar;\n";
     std::cout << "2 n - Generate n words in the current Grammar;\n";
     std::cout << "3 - Simplify Grammar;\n";
-    std::cout << "4 - \n";
+    std::cout << "4 - FNC convert\n";
     std::cout << "5 - Generate a random word in current Grammar and verify if it's accepted by the equivalent automaton;\n";
     std::cout << "6 - Clear the screen;\n";
     std::cout << "0 - End.\n\n";
@@ -51,6 +51,9 @@ int main()
             break;
         case 3:
             G.simplifyGrammar();
+            break;
+        case 4:
+            G.FNCconvert();
             break;
         case 6:
             system("CLS");

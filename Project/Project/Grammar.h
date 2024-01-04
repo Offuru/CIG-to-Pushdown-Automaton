@@ -24,6 +24,7 @@ private:
 	std::vector<production> m_productions;
 	char m_startSymbol;
 
+	char nextNonusedNonterminal();
 	bool verifyRule1() const;
 	bool verifyRule2() const;
 	bool verifyRule3() const;
@@ -37,11 +38,12 @@ private:
 	void eliminateNonGeneratingSymbols();
 	void eliminateInaccessibleSymbols();
 
+	
 
 	bool validCombination(int k, std::vector<int>& currentCombination);
 
 public:
-
+	void FNCconvert();
 	Grammar() = default;
 	Grammar(const Grammar&) = default;
 	~Grammar() = default;
