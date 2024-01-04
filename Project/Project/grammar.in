@@ -1,4 +1,24 @@
 5
+S A B C D
+2
+a b
+S
+11
+S A
+S B
+A aB
+A bS
+A b
+B BD
+B Ba
+C AS
+C b
+D bD
+D b
+
+
+
+5
 S T L D E
 6
 a b + * [ ]

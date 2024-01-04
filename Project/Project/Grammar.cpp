@@ -266,10 +266,12 @@ void Grammar::eliminateRenames()
 
 	for (auto derivation : derivations)
 	{
+		//Ms -> Md
 		auto range = derivations.equal_range(derivation.second);
 
 		for (auto prod = range.first; prod != range.second; ++prod)
 		{
+			//Md -> alphai
 			auto range2 = newProductions.equal_range(prod->second);
 
 			for (auto prod2 = range2.first; prod2 != range2.second; ++prod2)
@@ -277,6 +279,7 @@ void Grammar::eliminateRenames()
 				//verify if newProd doesn't already exist
 				bool exists = false;
 				auto range3 = newProductions.equal_range(derivation.first);
+				
 				for (auto prod3 = range3.first; prod3 != range3.second; ++prod3)
 				{
 					if (prod3->first == derivation.first && prod3->second == prod2->second)
@@ -286,6 +289,7 @@ void Grammar::eliminateRenames()
 					}
 				}
 
+				//Ms -> alphai
 				if (!exists)
 					newProductions.insert({ derivation.first, prod2->second });
 			}
@@ -302,6 +306,77 @@ void Grammar::eliminateRenames()
 	}
 }
 
+void Grammar::eliminateNonGeneratingSymbols()
+{
+	std::unordered_set<char> generatingSymbols;
+
+	bool changed = true;
+
+	while (changed)
+	{
+		changed = false;
+		//A->alpha
+		for (auto production : m_productions)
+		{
+			//check if alpha contains only {Vi-1 U Vt}* (* without lambda)
+			if (production.second.size() == 1 && production.second[0] == lambda[0])
+				continue;
+
+			//check if A isn't already added
+			if (generatingSymbols.find(production.first[0]) == generatingSymbols.end())
+			{
+				//check if alpha contains only {Vi-1 U Vt}*
+				bool checkIfContains = true;
+				for (auto var : production.second)
+				{
+					if (generatingSymbols.find(var) == generatingSymbols.end() &&
+						std::find(m_terminals.begin(), m_terminals.end(), var) == m_terminals.end())
+					{
+						checkIfContains = false;
+						break;
+					}
+
+				}
+
+				if (checkIfContains)
+				{
+					generatingSymbols.insert(production.first[0]);
+					changed = true;
+				}
+			}
+		}
+	}
+
+	m_nonterminals = std::vector<char>(generatingSymbols.begin(), generatingSymbols.end());
+
+	//eliminate productions that contain nongenerating symbols
+	bool containsNongenerating;
+	for (auto production = m_productions.begin(); production != m_productions.end();)
+	{
+		if (generatingSymbols.find(production->first[0]) == generatingSymbols.end())
+		{
+			production = m_productions.erase(production);
+			continue;
+		}
+		//check if Md contains nongen symb
+		containsNongenerating = false;
+		
+		for (auto elem : production->second)
+		{
+			if (generatingSymbols.find(elem) == generatingSymbols.end() &&
+				std::find(m_terminals.begin(), m_terminals.end(), elem) == m_terminals.end())
+			{
+				containsNongenerating = true;
+				break;
+			}
+		}
+		
+		if (containsNongenerating)
+			production = m_productions.erase(production);
+		else
+			++production;
+	}
+}
 
 
 bool Grammar::validCombination(int k, std::vector<int>& nonterminals)
@@ -323,6 +398,7 @@ void Grammar::simplifyGrammar()
 
 	eliminateLambdaProductions();
 	eliminateRenames();
+	eliminateNonGeneratingSymbols();
 }
 
 void Grammar::ReadGrammar(std::istream& in)

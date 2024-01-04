@@ -36,6 +36,8 @@ private:
 
 	void eliminateRenames();
 
+	void eliminateNonGeneratingSymbols();
+
 	bool validCombination(int k, std::vector<int>& currentCombination);
 
 public:
