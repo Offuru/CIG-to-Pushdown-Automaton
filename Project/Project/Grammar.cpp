@@ -464,7 +464,16 @@ void Grammar::simplifyGrammar()
 
 	//eliminate lambda-productions ????
 
-	eliminateLambdaProductions();
+	for (auto production : m_productions)
+	{
+		if (production.first.size() != 1)
+		{
+			std::cout << "Can't simplify grammar! One or more productions have more than one elements in the left member.\n";
+			return;
+		}
+	}
+
+	eliminateLambdaProductions(); //it brings the grammar in CIG form
 	eliminateRenames();
 	eliminateNonGeneratingSymbols();
 	eliminateInaccessibleSymbols();
