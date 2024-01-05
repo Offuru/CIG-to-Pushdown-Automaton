@@ -53,7 +53,7 @@ int main()
             G.simplifyGrammar();
             break;
         case 4:
-            G.FNCconvert();
+            G.FNGconvert();
             break;
         case 6:
             system("CLS");

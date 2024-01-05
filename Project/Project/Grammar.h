@@ -1,4 +1,5 @@
 #pragma once
+#define _SILENCE_STDEXT_HASH_LOWER_BOUND_DEPRECATION_WARNING
 #include <string>
 #include <vector>
 #include <regex>
@@ -11,6 +12,7 @@
 #include <format>
 #include <unordered_set>
 #include <unordered_map>
+
 
 using production = std::pair<std::string, std::string>;
 
@@ -25,6 +27,7 @@ private:
 	char m_startSymbol;
 
 	char nextNonusedNonterminal();
+	char lastNonusedNonterminal();
 	bool verifyRule1() const;
 	bool verifyRule2() const;
 	bool verifyRule3() const;
@@ -44,6 +47,9 @@ private:
 
 public:
 	void FNCconvert();
+
+	void FNGconvert();
+
 	Grammar() = default;
 	Grammar(const Grammar&) = default;
 	~Grammar() = default;
