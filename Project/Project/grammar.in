@@ -10,6 +10,64 @@ A b
 B SA
 B a
 
+
+5
+S A B C D
+3
+a b c
+S
+9
+S AB
+S AD
+S a
+A AD
+A a
+B SC
+C CD
+C c
+D b
+
+4
+S X A B
+2 a b
+S
+6
+S XA
+S BB
+B b
+B SB
+X b
+A a
+
+
+
+
+
+
+
+
+
+3
+S A B
+2
+a b
+S
+5
+S AB
+A BS
+A b
+B SA
+B a
+
+
+
+
+
+
+
+
+
+
 3
 S A B
 2

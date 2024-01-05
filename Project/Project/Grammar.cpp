@@ -11,10 +11,11 @@ char Grammar::nextNonusedNonterminal()
 	return next;
 }
 
-char Grammar::lastNonusedNonterminal()
+char Grammar::lastNonusedNonterminal(std::vector<char> addedZ)
 {
 	char next = 'Z';
-	while (std::find(m_nonterminals.begin(), m_nonterminals.end(), next) != m_nonterminals.end())
+	while (std::find(m_nonterminals.begin(), m_nonterminals.end(), next) != m_nonterminals.end() ||
+		std::find(addedZ.begin(), addedZ.end(), next) != addedZ.end())
 	{
 		--next;
 	}
@@ -572,13 +573,15 @@ void Grammar::FNGconvert()
 	int cnt = 0;
 	for (auto production : m_productions)
 	{
-		if (nonterminals.find(production.first[0]) == nonterminals.end())
+		if (nonterminals.find(production.first[0]) == nonterminals.end() &&
+			std::find(m_terminals.begin(), m_terminals.end(), production.first[0]) == m_terminals.end())
 		{
 			nonterminals[production.first[0]] = ++cnt;
 		}
 		for (auto elem : production.second)
 		{
-			if (nonterminals.find(elem) == nonterminals.end())
+			if (nonterminals.find(production.first[0]) == nonterminals.end() &&
+				std::find(m_terminals.begin(), m_terminals.end(), production.first[0]) == m_terminals.end())
 			{
 				nonterminals[elem] = ++cnt;
 			}
@@ -593,7 +596,7 @@ void Grammar::FNGconvert()
 	//step1
 	std::vector<char> addedZ;
 	bool addedSmth = true;
-	
+
 	while (addedSmth)
 	{
 		addedSmth = false;
@@ -607,21 +610,27 @@ void Grammar::FNGconvert()
 				{
 					auto its = productions.equal_range(production->second[0]);
 					for (auto it = its.first; it != its.second; ++it) {
-						std::string newMd = production->second;
-						newMd.replace(newMd.begin(), newMd.begin() + 1, it->second);
+						if (*it != *production)
+						{
+							std::string newMd = production->second;
+							newMd.replace(newMd.begin(), newMd.begin() + 1, it->second);
 
-						aux.insert({ production->first, newMd });
-						addedSmth = true;
+							aux.insert({ production->first, newMd });
+							addedSmth = true;
+						}
 					}
 
 					std::unordered_multimap<char, std::string> aux2;
 					its = aux.equal_range(production->second[0]);
 					for (auto it = its.first; it != its.second; ++it) {
-						std::string newMd = production->second;
-						newMd.replace(newMd.begin(), newMd.begin() + 1, it->second);
+						if (*it != *production)
+						{
+							std::string newMd = production->second;
+							newMd.replace(newMd.begin(), newMd.begin() + 1, it->second);
 
-						aux2.insert({ production->first, newMd });
-						addedSmth = true;
+							aux2.insert({ production->first, newMd });
+							addedSmth = true;
+						}
 					}
 
 					aux.insert(aux2.begin(), aux2.end());
@@ -631,7 +640,7 @@ void Grammar::FNGconvert()
 				}
 				else if (nonterminals[production->first] == nonterminals[production->second[0]])
 				{
-					char currentZ = lastNonusedNonterminal();
+					char currentZ = lastNonusedNonterminal(addedZ);
 					nonterminals[currentZ] = ++cnt;
 					addedZ.push_back(currentZ);
 					std::unordered_multimap<char, std::string> aux2;
@@ -649,7 +658,7 @@ void Grammar::FNGconvert()
 
 					for (auto p : productions)
 					{
-						if(p == *production)
+						if (p == *production)
 						{
 							std::string newMd(production->second.begin() + 1, production->second.end());
 							aux.insert({ currentZ, newMd });
@@ -674,10 +683,98 @@ void Grammar::FNGconvert()
 		productions.insert(aux.begin(), aux.end());
 	}
 
-	
+
 	m_productions.clear();
-	
+
 	for (auto p : productions)
+	{
+		std::string aux;
+		aux += p.first;
+		m_productions.push_back({ aux, p.second });
+	}
+
+	//step 2
+
+	std::sort(m_nonterminals.begin(), m_nonterminals.end(), [&](const char& a, const char& b) {return nonterminals[a] > nonterminals[b]; });
+	std::unordered_multimap<char, std::string> aux;
+	for (auto p : m_productions)
+		if (p.first[0] == m_nonterminals[0])
+			aux.insert({ p.first[0], p.second });
+
+
+	for (auto elem = m_nonterminals.begin() + 1; elem != m_nonterminals.end(); ++elem)
+	{
+		for (auto prod : m_productions)
+		{
+			if (prod.first[0] == *elem)
+			{
+				if (nonterminals.find(prod.second[0]) != nonterminals.end())
+				{
+					if (nonterminals[prod.first[0]] < nonterminals[prod.second[0]])
+					{
+						std::unordered_multimap<char, std::string> aux2;
+						auto its = aux.equal_range(prod.second[0]);
+						for (auto it = its.first; it != its.second; ++it)
+						{
+							std::string newMd = prod.second;
+							newMd.replace(newMd.begin(), newMd.begin() + 1, it->second);
+
+							aux2.insert({ prod.first[0], newMd });
+						}
+						aux.insert(aux2.begin(), aux2.end());
+					}
+					
+				}
+				//de adaugat productii tip A -> a in aux pt ca alg de mai sus nu face asta
+				for (auto p : m_productions)
+				{
+					if (p.first == prod.first)
+					{
+						auto its = aux.equal_range(p.first[0]);
+						bool alreadyIn = false;
+						for (auto it = its.first; it != its.second; ++it)
+						{
+							if (it->first == p.first[0] && it->second == p.second)
+							{
+								alreadyIn = true;
+								break;
+							}
+						}
+						if (!alreadyIn && nonterminals.find(p.second[0]) == nonterminals.end())
+							aux.insert({ p.first[0] , p.second });
+					}
+				}
+			}
+		}
+	}
+
+	for (auto p : m_productions)
+	{
+		if (std::find(addedZ.begin(), addedZ.end(), p.first[0]) != addedZ.end())
+		{
+			aux.insert({ p.first[0] , p.second });
+		}
+		else if (nonterminals.find(p.first[0]) != nonterminals.end() &&
+			nonterminals.find(p.second[0]) == nonterminals.end()) {
+			
+			auto its = aux.equal_range(p.first[0]);
+			bool alreadyIn = false;
+			for (auto it = its.first; it != its.second; ++it)
+			{
+				if (it->first == p.first[0] && it->second == p.second)
+				{
+					alreadyIn = true;
+					break;
+				}
+			}
+			if (!alreadyIn)
+				aux.insert({ p.first[0] , p.second });
+		}
+	}
+
+	m_productions.clear();
+
+	for (auto p : aux)
 	{
 		std::string aux;
 		aux += p.first;

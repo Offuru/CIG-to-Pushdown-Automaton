@@ -27,7 +27,7 @@ private:
 	char m_startSymbol;
 
 	char nextNonusedNonterminal();
-	char lastNonusedNonterminal();
+	char lastNonusedNonterminal(std::vector<char> addedZ);
 	bool verifyRule1() const;
 	bool verifyRule2() const;
 	bool verifyRule3() const;
