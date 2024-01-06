@@ -1,4 +1,18 @@
 3
+S A C
+3
+a b c
+S
+6
+S AC
+S $
+A aAb
+A $
+C cC
+C $
+
+
+3
 S A B
 2
 a b
@@ -126,15 +140,3 @@ E [[[]]]
 
 
 
-3
-S A C
-3
-a b c
-S
-6
-S AC
-S $
-A aAb
-A $
-C cC
-C $

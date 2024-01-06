@@ -251,10 +251,13 @@ void Grammar::eliminateLambdaProductions()
 	{
 		std::string aux;
 		aux += m_startSymbol;
-		P1.push_back({ "@", aux });
-		P1.push_back({ "@", lambda });
+		std::string newStartSymb;
+		newStartSymb += nextNonusedNonterminal();
+		P1.push_back({ newStartSymb, aux });
+		P1.push_back({ newStartSymb, lambda });
 
-		m_startSymbol = '@';
+		m_nonterminals.push_back(newStartSymb[0]);
+		m_startSymbol = newStartSymb[0];
 	}
 
 	m_productions = P1;
