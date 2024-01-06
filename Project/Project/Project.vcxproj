@@ -128,10 +128,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="APD.cpp" />
     <ClCompile Include="Grammar.cpp" />
     <ClCompile Include="Project.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="APD.h" />
     <ClInclude Include="Grammar.h" />
   </ItemGroup>
   <ItemGroup>
