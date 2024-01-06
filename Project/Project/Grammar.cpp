@@ -342,8 +342,6 @@ void Grammar::eliminateNonGeneratingSymbols()
 		for (auto production : m_productions)
 		{
 			////check if alpha contains only {Vi-1 U Vt}*
-			//if (production.second.size() == 1 && production.second[0] == lambda[0])
-			//	continue;
 
 			//check if A isn't already added
 			if (generatingSymbols.find(production.first[0]) == generatingSymbols.end())
@@ -776,12 +774,42 @@ void Grammar::FNGconvert()
 
 	for (auto p : aux)
 	{
-		std::string aux;
-		aux += p.first;
-		m_productions.push_back({ aux, p.second });
+		std::string aux2;
+		aux2 += p.first;
+		m_productions.push_back({ aux2, p.second });
+	}
+
+	aux.clear();
+	//step 3
+	//Z -> Ai.....
+	for (auto prod = m_productions.begin(); prod != m_productions.end();)
+	{
+		if (std::find(addedZ.begin(), addedZ.end(), prod->first[0]) != addedZ.end())
+		{
+			for (auto p : m_productions)
+			{
+				if (p.first[0] == prod->second[0])
+				{
+					std::string newMd = prod->second;
+					newMd.replace(newMd.begin(), newMd.begin() + 1, p.second);
+					aux.insert({ prod->first[0], newMd});
+				}
+			}
+			prod = m_productions.erase(prod);
+		}
+		else
+			++prod;
+	}
+
+	m_nonterminals.insert(m_nonterminals.end(), addedZ.begin(), addedZ.end());
+
+	for (auto p : aux)
+	{
+		std::string aux2;
+		aux2 += p.first;
+		m_productions.push_back({ aux2, p.second });
 	}
 }
-
 
 bool Grammar::validCombination(int k, std::vector<int>& nonterminals)
 {

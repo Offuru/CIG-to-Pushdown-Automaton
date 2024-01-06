@@ -10,7 +10,6 @@ A b
 B SA
 B a
 
-
 5
 S A B C D
 3
@@ -26,6 +25,11 @@ B SC
 C CD
 C c
 D b
+
+
+
+
+
 
 4
 S X A B
