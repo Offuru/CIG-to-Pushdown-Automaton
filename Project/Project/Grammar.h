@@ -60,4 +60,9 @@ public:
 	bool VerifyGrammar(std::ostream&) const;
 	void PrintGrammar() const;	
 	void simplifyGrammar();
+
+	std::vector<char> getTerminals();
+	std::vector<char> getNonTerminals();
+	std::vector<production> getProductions();
+	char getStartSymbol();
 };

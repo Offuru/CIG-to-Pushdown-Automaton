@@ -132,7 +132,7 @@ void Grammar::eliminateLambdaProductions()
 			&& wordStillHasNonterminals(production.first))
 			Vn.insert(production.first[0]);
 	}
-	
+
 	//B->A1A2..An
 	bool modifiedVn = true;
 
@@ -866,6 +866,26 @@ void Grammar::simplifyGrammar()
 	eliminateInaccessibleSymbols();
 }
 
+std::vector<char> Grammar::getTerminals()
+{
+	return m_terminals;
+}
+
+std::vector<char> Grammar::getNonTerminals()
+{
+	return m_nonterminals;
+}
+
+std::vector<production> Grammar::getProductions()
+{
+	return m_productions;
+}
+
+char Grammar::getStartSymbol()
+{
+	return m_startSymbol;
+}
+
 void Grammar::ReadGrammar(std::istream& in)
 {
 	uint32_t n;
@@ -968,10 +988,12 @@ std::string Grammar::GenerateWord(bool print) const
 		std::string currentWordCpy{ currentWord };
 		std::vector<uint32_t> availablePositionsToReplace;
 
-		while (regex_search(currentWordCpy, match, rule))
+		for (int i = 0; i < currentWordCpy.size(); ++i)
 		{
-			availablePositionsToReplace.emplace_back(match.position(0));
-			currentWordCpy = match.suffix().str();
+			if (currentWordCpy[i] == ruleToApply.first[0])
+			{
+				availablePositionsToReplace.emplace_back(i);
+			}
 		}
 
 		if (availablePositionsToReplace.size() == 0)
