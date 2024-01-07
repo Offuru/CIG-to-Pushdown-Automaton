@@ -132,7 +132,7 @@ void Grammar::eliminateLambdaProductions()
 			&& wordStillHasNonterminals(production.first))
 			Vn.insert(production.first[0]);
 	}
-
+	
 	//B->A1A2..An
 	bool modifiedVn = true;
 
@@ -195,11 +195,10 @@ void Grammar::eliminateLambdaProductions()
 					{
 						/*for (int i = 1; i <= c; ++i)
 							std::cout << currentCombination[i] << " ";*/
-							//se intampla magie aici
 
 						for (auto production : m_productions)
 						{
-							if (production.second != lambda)
+							if (production.second != lambda && onlynonterminals(production.second))
 							{
 								std::string rightMember = production.second;
 								bool changedSomething = false;
@@ -502,9 +501,7 @@ void Grammar::FNCconvert()
 		return;
 	}
 
-	eliminateRenames();
-	eliminateNonGeneratingSymbols();
-	eliminateInaccessibleSymbols();
+	simplifyGrammar();
 
 	std::unordered_map<char, char> newProductions; //Step 2 - Ci -> Bi but the key is Bi to find if a terminal is alr replaced by a nonterminal (Bi <- Ci)
 
@@ -516,6 +513,7 @@ void Grammar::FNCconvert()
 			{
 				if (std::find(m_terminals.begin(), m_terminals.end(), elem) != m_terminals.end())
 				{
+
 					if (newProductions.find(elem) == newProductions.end())
 					{
 						char nextNonterminal = nextNonusedNonterminal();
@@ -565,7 +563,6 @@ void Grammar::FNCconvert()
 			}
 			
 			step3Productions.push_back({ lastNewNonterminal, tmpMd });
-			//m_nonterminals.push_back(currentNewNonterminal[0]);
 
 			production = m_productions.erase(production);
 		}
@@ -576,8 +573,6 @@ void Grammar::FNCconvert()
 	}
 
 	m_productions.insert(m_productions.end(), step3Productions.begin(), step3Productions.end());
-
-	//std::sort(m_productions.begin(), m_productions.end(), [](const production& a, const production& b) {return a.first < b.first; });
 }
 
 void Grammar::FNGconvert()
@@ -865,7 +860,7 @@ void Grammar::simplifyGrammar()
 		}
 	}*/
 
-	eliminateLambdaProductions(); //??
+	eliminateLambdaProductions();
 	eliminateRenames();
 	eliminateNonGeneratingSymbols();
 	eliminateInaccessibleSymbols();
@@ -1057,4 +1052,30 @@ void Grammar::PrintGrammar() const
 		std::cout << std::format("{}. {} -> {}\n", ++cnt, prod.first, second);
 	}
 
+}
+
+bool Grammar::onlyterminals(const std::string& right) const
+{
+	for (auto p : right)
+	{
+		if (std::find(m_nonterminals.begin(), m_nonterminals.end(), p) != m_nonterminals.end())
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool Grammar::onlynonterminals(const std::string& right) const
+{
+	for (auto p : right)
+	{
+		if (std::find(m_nonterminals.begin(), m_nonterminals.end(), p) == m_nonterminals.end())
+		{
+			return false;
+		}
+	}
+
+	return true;
 }

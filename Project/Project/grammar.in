@@ -1,29 +1,15 @@
 4
-S A B C
-2
+S X B A
+2 
 a b
-C
-7
-S AB
-A BS
-A b
-B SA
-B a
-C S
-C $
-
-
-3
-S B C
-2
-a b
-C
-5
-C S
-C $
-S aSB
-S aB
+S
+6
+S XB
+S AA
+A a
+A SA
 B b
+X a
 
 
 5
@@ -59,18 +45,37 @@ L [S]
 L a
 L b
 
-4
-S C A B
+
+2
+S A
 2
 a b
 S
-6
-S CA
-S BB
+3
+S Ab
+A aaaa
+S $
+
+
+3
+S B C
+2
+a b
+C
+5
+C S
+C $
+S aSB
+S aB
 B b
-B SB
-C b
-A a
+
+
+
+
+
+
+
+
 
 3
 S A C

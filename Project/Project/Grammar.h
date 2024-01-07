@@ -42,7 +42,8 @@ private:
 	void eliminateInaccessibleSymbols();
 
 	bool validCombination(int k, std::vector<int>& currentCombination);
-
+	bool onlyterminals(const std::string&) const;
+	bool onlynonterminals(const std::string& right) const;
 public:
 	void FNCconvert();
 
