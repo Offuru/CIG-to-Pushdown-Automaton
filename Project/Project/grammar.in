@@ -1,3 +1,31 @@
+4
+S A B C
+2
+a b
+C
+7
+S AB
+A BS
+A b
+B SA
+B a
+C S
+C $
+
+
+3
+S B C
+2
+a b
+C
+5
+C S
+C $
+S aSB
+S aB
+B b
+
+
 5
 S A B C D
 2
@@ -58,17 +86,7 @@ C cC
 C $
 
 
-3
-S A B
-2
-a b
-S
-5
-S AB
-A BS
-A b
-B SA
-B a
+
 
 5
 S A B C D

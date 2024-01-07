@@ -563,8 +563,9 @@ void Grammar::FNCconvert()
 				m_nonterminals.push_back(currentNewNonterminal[0]);
 				tmpMd = std::string(tmpMd.begin() + 1, tmpMd.end());
 			}
+			
 			step3Productions.push_back({ lastNewNonterminal, tmpMd });
-			m_nonterminals.push_back(currentNewNonterminal[0]);
+			//m_nonterminals.push_back(currentNewNonterminal[0]);
 
 			production = m_productions.erase(production);
 		}
@@ -849,22 +850,22 @@ bool Grammar::validCombination(int k, std::vector<int>& nonterminals)
 
 void Grammar::simplifyGrammar()
 {
-	/*if (!IsContextIndependent())
+	if (!IsContextIndependent())
 	{
 		std::cout << "Can't simplify grammar! It isn't context independent.\n";
 		return;
-	}*/
+	}
 
-	for (auto production : m_productions)
+	/*for (auto production : m_productions)
 	{
 		if (production.first.size() != 1 && wordStillHasNonterminals(production.first))
 		{
 			std::cout << "Can't simplify grammar! One or more productions have more than one elements in the left member.\n";
 			return;
 		}
-	}
+	}*/
 
-	eliminateLambdaProductions(); //it brings the grammar in CIG form
+	eliminateLambdaProductions(); //??
 	eliminateRenames();
 	eliminateNonGeneratingSymbols();
 	eliminateInaccessibleSymbols();
