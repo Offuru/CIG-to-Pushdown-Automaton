@@ -44,7 +44,10 @@ std::ostream& operator<<(std::ostream& out, const APD& apd)
 	for (const auto& transition : apd.m_transitions)
 	{
 		const auto& [state, letter, stackState] = transition.first;
-		const auto& [nextState, nextStackState] = transition.second;
-		out << std::format("({},{},{}) -> ({},{})\n", state, letter, stackState, nextState, nextStackState);
+
+		out << std::format("({},{},{}) -> ({},", state, letter, stackState, transition.second.first);
+		for (const auto& nextStackState : transition.second.second)
+			out << std::format("{}", nextStackState);
+		out << "\n";
 	}
 }
