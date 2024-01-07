@@ -402,6 +402,18 @@ void Grammar::eliminateNonGeneratingSymbols()
 		else
 			++production;
 	}
+
+	std::unordered_set<char> newNonterminals;
+
+	for (auto prod : m_productions)
+	{
+		newNonterminals.insert(prod.first[0]);
+	}
+
+	m_nonterminals.clear();
+
+	for (auto p : newNonterminals)
+		m_nonterminals.push_back(p);
 }
 
 void Grammar::eliminateInaccessibleSymbols()
@@ -468,6 +480,18 @@ void Grammar::eliminateInaccessibleSymbols()
 		}
 		else production = m_productions.erase(production);
 	}
+
+	std::unordered_set<char> newNonterminals;
+
+	for (auto prod : m_productions)
+	{
+		newNonterminals.insert(prod.first[0]);
+	}
+
+	m_nonterminals.clear();
+
+	for (auto p : newNonterminals)
+		m_nonterminals.push_back(p);
 }
 
 void Grammar::FNCconvert()
@@ -479,6 +503,8 @@ void Grammar::FNCconvert()
 	}
 
 	eliminateRenames();
+	eliminateNonGeneratingSymbols();
+	eliminateInaccessibleSymbols();
 
 	std::unordered_map<char, char> newProductions; //Step 2 - Ci -> Bi but the key is Bi to find if a terminal is alr replaced by a nonterminal (Bi <- Ci)
 
@@ -829,11 +855,9 @@ void Grammar::simplifyGrammar()
 		return;
 	}*/
 
-	//eliminate lambda-productions ????
-
 	for (auto production : m_productions)
 	{
-		if (production.first.size() != 1)
+		if (production.first.size() != 1 && wordStillHasNonterminals(production.first))
 		{
 			std::cout << "Can't simplify grammar! One or more productions have more than one elements in the left member.\n";
 			return;

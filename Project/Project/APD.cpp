@@ -50,4 +50,5 @@ std::ostream& operator<<(std::ostream& out, const APD& apd)
 			out << std::format("{}", nextStackState);
 		out << "\n";
 	}
+	return out;
 }
