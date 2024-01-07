@@ -16,7 +16,7 @@ public:
 	static const char lambda = '$';
 
 	using transition = std::tuple<std::string, char, std::string>;
-	using statePair = std::pair<std::string, std::string>;
+	using statePair = std::pair<std::string, std::vector<std::string>>;
 
 	APD(const Grammar& grammar);
 
